@@ -20,10 +20,16 @@ describe("renamedecl tests", () => {
 
         fs.writeFileSync(beautyFileName, beautyCode, { encoding: 'utf8' });
 
-        renameDeclarations(ast, (id, scope) => {
-            return `v${++scope.varNum}`
+        renameDeclarations(ast, (id, scope, type) => {
+            return {
+                'variable': () => `v${++scope.varNum}`,
+                'function': () => `f${++scope.funcNum}`,
+                'parameter': () => `p${++scope.paramNum}`,
+            }[type]();
         }, scope => {
-            scope.varNum = 0
+            scope.varNum = 0;
+            scope.funcNum = 0;
+            scope.paramNum = 0;
         });
 
         const newCode = escodegen.generate(ast);
@@ -31,18 +37,18 @@ describe("renamedecl tests", () => {
         fs.writeFileSync(beautyNewFileName, newCode, { encoding: 'utf8' });
 
         const expectedCode = `
-function v1(v8) {
-    const v1 = function (v1, v2) {
-        return v1 + v2;
+function f1(p3) {
+    const v1 = function (p1, p2) {
+        return p1 + p2;
     };
     let v2 = 10;
     let v3 = 20;
-    let v4 = v1(v2, v3) + v8;
-    const v7 = (v5, v6) => v5 + v6;
-    v4 += v7(v2, v3);
+    let v4 = v1(v2, v3) + p3;
+    const v5 = (p1, p2) => p1 + p2;
+    v4 += v5(v2, v3);
     return v4;
 }
-console.log(v1(1000));
+console.log(f1(1000));
 `.trim();
 
         expect(newCode).toBe(expectedCode);

@@ -1,6 +1,6 @@
 {
   "name": "renamedecl",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Renaming variables and functions in JS code based on an AST",
   "homepage": "https://github.com/optinsoft/renamedecl",
   "main": "src/renamedecl.js",

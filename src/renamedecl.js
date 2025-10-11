@@ -10,9 +10,9 @@ function renameDeclarations(ast, rename, initscope) {
             }
         }
 
-        addDeclaration(id) {
+        addDeclaration(id, type, node) {
             let declaration = { id }
-            const newName = rename && rename(id, this);
+            const newName = rename && rename(id, this, type, node);
             this.declarations[id.name] = declaration;
             if (newName) {
                 declaration['newName'] = newName;
@@ -84,26 +84,26 @@ function renameDeclarations(ast, rename, initscope) {
     walk.ancestor(ast, {
         VariableDeclarator(node, ancestors) {
             const scope = scopes.getAncestorsScope(node, ancestors);
-            scope.addDeclaration(node.id);
+            scope.addDeclaration(node.id, 'variable', node);
         },
         FunctionDeclaration(node, ancestors) {
             const scope = scopes.getAncestorsScope(node, ancestors);
-            scope.addDeclaration(node.id);
+            scope.addDeclaration(node.id, 'function', node);
             const paramsScope = scopes.getAncestorsScope(node.body, ancestors);
             node.params.forEach(param => {
-                paramsScope.addDeclaration(param);
+                paramsScope.addDeclaration(param, 'parameter', node);
             });
         },
         FunctionExpression(node, ancestors) {
             const paramsScope = scopes.getAncestorsScope(node.body, ancestors);
             node.params.forEach(param => {
-                paramsScope.addDeclaration(param);
+                paramsScope.addDeclaration(param, 'parameter', node);
             });
         },
         ArrowFunctionExpression(node, ancestors) {
             const paramsScope = scopes.getAncestorsScope(node.body, ancestors);
             node.params.forEach(param => {
-                paramsScope.addDeclaration(param);
+                paramsScope.addDeclaration(param, 'parameter', node);
             });
         },
         Program(node, ancestors) {
