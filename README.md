@@ -39,11 +39,22 @@ const ast = acorn.parse(originalCode, {
     sourceType: 'script'
 });
 
-renameDeclarations(ast, (id, scope, type, node) => {
+function alphaNumber(n) {
+    const ac = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const l = ac.length;
+    let r = ac.charAt(n % l); n = Math.floor(n / l);
+    while (n) {
+        r = ac.charAt(n % l) + r;
+        n = Math.floor(n / l);
+    }
+    return r;
+}
+
+renameDeclarations(ast, (id, scope, type) => {
     return {
-        'variable': () => `v${++scope.varNum}`,
-        'function': () => `f${++scope.funcNum}`,
-        'parameter': () => `p${++scope.paramNum}`,
+        'variable': () => `v${alphaNumber(scope.level)}${++scope.varNum}`,
+        'function': () => `f${alphaNumber(scope.level)}${++scope.funcNum}`,
+        'parameter': () => `p${alphaNumber(scope.level)}${++scope.paramNum}`,
     }[type]();
 }, scope => {
     scope.varNum = 0;
@@ -58,16 +69,16 @@ console.log(newCode);
 Expected output: 
 
 ```javascript
-function f1(p3) {
-    const v1 = function (p1, p2) {
-        return p1 + p2;
+function fa1(pb3) {
+    const vb1 = function (pc1, pc2) {
+        return pc1 + pc2;
     };
-    let v2 = 10;
-    let v3 = 20;
-    let v4 = v1(v2, v3) + p3;
-    const v5 = (p1, p2) => p1 + p2;
-    v4 += v5(v2, v3);
-    return v4;
+    let vb2 = 10;
+    let vb3 = 20;
+    let vb4 = vb1(vb2, vb3) + pb3;
+    const vb5 = (pb1, pb2) => pb1 + pb2;
+    vb4 += vb5(vb2, vb3);
+    return vb4;
 }
-console.log(f1(1000));
+console.log(fa1(1000));
 ```

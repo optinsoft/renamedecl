@@ -3,6 +3,17 @@ const acorn = require('acorn');
 const escodegen = require('escodegen');
 const fs = require('fs');
 
+function alphaNumber(n) {
+    const ac = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const l = ac.length;
+    let r = ac.charAt(n % l); n = Math.floor(n / l);
+    while (n) {
+        r = ac.charAt(n % l) + r;
+        n = Math.floor(n / l);
+    }
+    return r;
+}
+
 describe("renamedecl tests", () => {
     test('rename declarations in calculate.js', () => {
         const originalFileName = './test/calculate.js';
@@ -19,17 +30,6 @@ describe("renamedecl tests", () => {
         const beautyCode = escodegen.generate(ast);
 
         fs.writeFileSync(beautyFileName, beautyCode, { encoding: 'utf8' });
-
-        function alphaNumber(n) {
-            const ac = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-            const l = ac.length;
-            let r = ac.charAt(n % l); n = Math.floor(n / l);
-            while (n) {
-                r = ac.charAt(n % l) + r;
-                n = Math.floor(n / l);
-            }
-            return r;
-        }
 
         renameDeclarations(ast, (id, scope, type) => {
             return {
