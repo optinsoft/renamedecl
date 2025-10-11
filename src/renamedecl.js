@@ -1,9 +1,12 @@
 const walk = require('acorn-walk');
 
 function renameDeclarations(ast, rename, initscope) {
+
     class Scope {
-        constructor(node) {
+        constructor(node, parentScope) {
             this.node = node;
+            this.parentScope = parentScope;
+            this.level = parentScope ? parentScope.level+1 : 0;
             this.declarations = {};
             if (initscope) {
                 initscope(this);
@@ -32,11 +35,11 @@ function renameDeclarations(ast, rename, initscope) {
             ].includes(node.type);
         }
 
-        getBlockScope(node) {
+        getBlockScope(node, parentScope) {
             let scope = this.scopes[node.start];
             if (!scope) {
                 if (this.isBlockNode(node)) {
-                    scope = new Scope(node);
+                    scope = new Scope(node, parentScope);
                     this.scopes[node.start] = scope;
                 }
             }
@@ -46,19 +49,21 @@ function renameDeclarations(ast, rename, initscope) {
         getAncestorsScope(node, ancestors) {
             let lastScope = null;
             ancestors.forEach(node => {
-                const scope = this.getBlockScope(node);
+                const scope = this.getBlockScope(node, lastScope);
                 if (scope) {
                     lastScope = scope;
                 }
             });
-            return this.getBlockScope(node) || lastScope;
+            return this.getBlockScope(node, lastScope) || lastScope;
         }
 
         getIdentifierDeclaration(id, ancestors) {
+            let lastScope = null;
             let lastDeclaration = null;
             ancestors.forEach(node => {
-                const scope = this.getBlockScope(node);
+                const scope = this.getBlockScope(node, lastScope);
                 if (scope) {
+                    lastScope = scope;
                     const declaration = scope.declarations[id.name];
                     if (declaration) {
                         lastDeclaration = declaration;
@@ -141,6 +146,7 @@ function renameDeclarations(ast, rename, initscope) {
             declaration.id.name = declaration.newName;
         }
     }
+
 }
 
 module.exports = {
